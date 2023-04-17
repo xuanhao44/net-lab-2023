@@ -198,7 +198,7 @@ void arp_out(buf_t *buf, uint8_t *ip)
     // Step2
     // 如果能找到该 IP 地址对应的 MAC 地址，则将数据包直接发送给以太网层，即调用 ethernet_out 函数直接发出去。
     if (mac != NULL) {
-        ethernet_out(buf, mac, NET_PROTOCOL_ARP); // 选择 ARP 的协议
+        ethernet_out(buf, mac, NET_PROTOCOL_IP); // 是 IP 协议
         return;
     }
 
