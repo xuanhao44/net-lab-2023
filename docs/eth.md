@@ -1,5 +1,7 @@
 # eth 以太网实验
 
+文章来自于：https://github.com/xuanhao44/net-lab-2023
+
 ## 1 对结构和功能的概览
 
 根据协议栈架构，eth_in 就是收到从 IP 层发来的数据包，为它加上数据链路层的封装，然后送到物理层；eth_out 就是收到从物理层发来的数据包，拆解其数据链路层的封装，然后送到 IP 层。
@@ -8,7 +10,7 @@
 
 如图所示：
 
-![net_lab_eth_structure](../pic/net_lab_eth_structure.png)
+![net_lab_eth_structure](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_eth_structure.png)
 
 ## 2 结合实验框架的实现
 
@@ -99,17 +101,17 @@ protocol = swap16(hdr->protocol16);
 
 eth_in:
 
-![net_lab_eth_in_result](../pic/net_lab_eth_in_result.png)
+![net_lab_eth_in_result](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_eth_in_result.png)
 
 eth_out:
 
-![net_lab_eth_out_result](../pic/net_lab_eth_out_result.png)
+![net_lab_eth_out_result](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_eth_out_result.png)
 
 ### 3.1 eth_in 的 in.pcap 分析
 
 选取第一组分析：
 
-![net_lab_eth_in_pcap](../pic/net_lab_eth_in_pcap.png)
+![net_lab_eth_in_pcap](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_eth_in_pcap.png)
 
 （pcap 里没看到数据链路层的报头和 FCS，只有数据帧）
 
@@ -117,7 +119,7 @@ eth_out:
 
 ### 3.2 eth_out 的 out.pcap 分析
 
-![net_lab_eth_out_pcap](../pic/net_lab_eth_out_pcap.png)
+![net_lab_eth_out_pcap](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_eth_out_pcap.png)
 
 可以看到，上层的数据只有 40 字节，故该数据包在传到数据链路层再发往物理层的时候添加了 6 字节的 Padding，以达到最小的数据长度。
 
