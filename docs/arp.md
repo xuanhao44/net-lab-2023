@@ -118,13 +118,12 @@ in.pcap 和 out.pcap 部分分析：
 
 out 和 in 交替分析：
 
-out 组 1是主机的**无回报ARP包（ARP announcement）** ：用于昭示天下（LAN）本机要使用某个 IP 地址了，是一个 Sender IP 和 Traget IP 填充的都是本机 IP 地址的 ARP request。故点开组 1 就可以看到 Sender IP 和 Traget IP 都是 192.168.163.103。
+out 组 1 是主机的**无回报 ARP 包（ARP announcement）**：用于昭示天下（LAN）本机要使用某个 IP 地址了，是一个 Sender IP 和 Traget IP 填充的都是本机 IP 地址的 ARP request。故点开组 1 就可以看到 Sender IP 和 Traget IP 都是 192.168.163.103。
 
-in 组 1 是主机向 IP 地址为 192.168.163.10 的 DNS 服务器发送 DNS 请求，但是主机不知道该DNS 服务器的 mac 地址（于是乎缓存了该包）。
+in 组 1 是主机向 IP 地址为 192.168.163.10 的 DNS 服务器发送 DNS 请求，但是主机不知道该 DNS 服务器的 mac 地址（于是乎缓存了该包）。
 
 out 组 2 是主机为了知道 192.168.163.10 的 mac 地址而发送的 arp 请求报文（是广播报文）。
 
 in 组 2 是前面提到的 IP 地址为 192.168.163.10 的 DNS 服务器向主机（mac 地址为 11:22:33:44:55:66）发送的 arp 应答报文，说明自己的 mac 地址为 21:32:43:54:65:06。
 
 out 组 3 是把先前缓存的 out 组 1 发出了。
-
