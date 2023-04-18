@@ -47,9 +47,7 @@ memcpy(hdr->src, net_if_mac, NET_MAC_LEN);
 
 1. memcpy
 
-怎么把 mac、protocol 填到 header 里去？使用 memcpy。
-
-比如：
+怎么把 mac、protocol 填到 header 里去？使用 memcpy，比如：
 
 ```c
 memcpy(mac, hdr->src, NET_MAC_LEN);
