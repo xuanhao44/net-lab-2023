@@ -6,45 +6,93 @@
 
 /**
  * @brief 处理一个收到的数据包
- * 
+ *
  * @param buf 要处理的数据包
- * @param src_mac 源mac地址
+ * @param src_mac 源 mac 地址
  */
 void ip_in(buf_t *buf, uint8_t *src_mac)
 {
     // TO-DO
+
+    // Step1
+    // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
+
+    // Step2
+    // 接下来做报头检测，检查内容至少包括：IP 头部的版本号是否为 IPv4，总长度字段小于或等于收到的包的长度等，如果不符合这些要求，则丢弃不处理。
+
+    // Step3
+    // 先把 IP 头部的头部校验和字段用其他变量保存起来，
+    // 接着将该头部校验和字段置 0，
+    // 然后调用 checksum16 函数来计算头部校验和，
+    // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理，如果一致，则再将该头部校验和字段恢复成原来的值。
+
+    // Step4
+    // 对比目的 IP 地址是否为本机的 IP 地址，如果不是，则丢弃不处理。
+
+    // Step5
+    // 如果接收到的数据包的长度大于 IP 头部的总长度字段，则说明该数据包有填充字段，可调用 buf_remove_padding() 函数去除填充字段。
+
+    // Step6
+    // 调用 buf_remove_header() 函数去掉 IP 报头。
+
+    // Step7
+    // 调用 net_in() 函数向上层传递数据包。如果是不能识别的协议类型，即调用 icmp_unreachable() 返回 ICMP 协议不可达信息。
 }
 
 /**
- * @brief 处理一个要发送的ip分片
- * 
+ * @brief 处理一个要发送的 ip 分片
+ *
  * @param buf 要发送的分片
- * @param ip 目标ip地址
+ * @param ip 目标 ip 地址
  * @param protocol 上层协议
- * @param id 数据包id
- * @param offset 分片offset，必须被8整除
- * @param mf 分片mf标志，是否有下一个分片
+ * @param id 数据包 id
+ * @param offset 分片 offset，必须被 8 整除
+ * @param mf 分片 mf 标志，是否有下一个分片
  */
 void ip_fragment_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol, int id, uint16_t offset, int mf)
 {
     // TO-DO
+
+    // Step1
+    // 调用 buf_add_header() 增加 IP 数据报头部缓存空间。
+
+    // Step2
+    // 填写 IP 数据报头部字段。
+
+    // Step3
+    // 先把 IP 头部的首部校验和字段填 0，再调用 checksum16 函数计算校验和，然后把计算出来的校验和填入首部校验和字段。
+
+    // Step4
+    // 调用 arp_out 函数 () 将封装后的 IP 头部和数据发送出去。
 }
 
 /**
- * @brief 处理一个要发送的ip数据包
- * 
+ * @brief 处理一个要发送的 ip 数据包
+ *
  * @param buf 要处理的包
- * @param ip 目标ip地址
+ * @param ip 目标 ip 地址
  * @param protocol 上层协议
  */
 void ip_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol)
 {
     // TO-DO
+
+    // Step1
+    // 首先检查从上层传递下来的数据报包长是否大于 IP 协议最大负载包长（1500 字节（MTU）减去 IP 首部长度）。
+
+    // Step2
+    // 如果超过 IP 协议最大负载包长，则需要分片发送。
+    // 首先调用 buf_init() 初始化一个 ip_buf, 将数据报包长截断，每个截断后的包长 = IP 协议最大负载包长（1500 字节 - IP 首部长度），调用 ip_fragment_out() 函数发送出去。
+    // 如果截断后最后的一个分片小于或等于 IP 协议最大负载包长，调用 buf_init() 初始化一个 ip_buf，大小等于该分片大小，再调用 ip_fragment_out() 函数发送出去。
+    // 注意，最后一个分片的 MF = 0。
+
+    // Step3
+    // 如果没有超过 IP 协议最大负载包长，则直接调用 ip_fragment_out() 函数发送出去。
 }
 
 /**
- * @brief 初始化ip协议
- * 
+ * @brief 初始化 ip 协议
+ *
  */
 void ip_init()
 {

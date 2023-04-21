@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 /**
- * @brief ip转字符串
- * 
- * @param ip ip地址
+ * @brief ip 转字符串串
+ *
+ * @param ip ip 地址
  * @return char* 生成的字符串
  */
 char *iptos(uint8_t *ip)
@@ -15,9 +15,9 @@ char *iptos(uint8_t *ip)
 }
 
 /**
- * @brief mac转字符串
- * 
- * @param mac mac地址
+ * @brief mac 转字符串
+ *
+ * @param mac mac 地址
  * @return char* 生成的字符串
  */
 char *mactos(uint8_t *mac)
@@ -29,7 +29,7 @@ char *mactos(uint8_t *mac)
 
 /**
  * @brief 时间戳转字符串
- * 
+ *
  * @param timestamp 时间戳
  * @return char* 生成的字符串
  */
@@ -45,11 +45,11 @@ char *timetos(time_t timestamp)
 }
 
 /**
- * @brief ip前缀匹配
- * 
- * @param ipa 第一个ip
- * @param ipb 第二个ip
- * @return uint8_t 两个ip相同的前缀长度
+ * @brief ip 前缀匹配
+ *
+ * @param ipa 第一个 ip
+ * @param ipb 第二个 ip
+ * @return uint8_t 两个 ip 相同的前缀长度
  */
 uint8_t ip_prefix_match(uint8_t *ipa, uint8_t *ipb)
 {
@@ -69,8 +69,8 @@ uint8_t ip_prefix_match(uint8_t *ipa, uint8_t *ipb)
 }
 
 /**
- * @brief 计算16位校验和
- * 
+ * @brief 计算 16 位校验和
+ *
  * @param buf 要计算的数据包
  * @param len 要计算的长度
  * @return uint16_t 校验和
@@ -78,4 +78,16 @@ uint8_t ip_prefix_match(uint8_t *ipa, uint8_t *ipb)
 uint16_t checksum16(uint16_t *data, size_t len)
 {
     // TO-DO
+
+    // Step1
+    // 把 data 看成是每 16 个 bit（即 2 个字节）组成一个数，相加（注意，16 位加法的结果可能会超过 16 位，因此加法结果需要用 32 位数来保存）。
+
+    // Step2
+    // 如果最后还剩 8 个 bit 值，也要相加这个 8bit 值。
+
+    // Step3
+    // 判断相加后 32bit 结果值的高 16 位是否为 0，如果不为 0，则将高 16 位和低 16 位相加，依次循环，直至高 16 位为 0 为止。
+
+    // Step4
+    // 将上述的和（低 16 位）取反，即得到校验和。
 }
