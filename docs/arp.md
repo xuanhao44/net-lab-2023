@@ -34,6 +34,7 @@ ARP 表：设备通过 ARP 解析到目的 MAC 之后，将会在自己的 ARP �
 2. 填写 ARP 报头。
 
 3. ARP 操作类型为 ARP_REQUEST，注意大小端转换。
+
 4. 调用 ethernet_out 函数将 ARP 报文发送出去。注意：ARP announcement 或 ARP 请求报文都是广播报文，其目标 MAC 地址应该是广播地址：FF-FF-FF-FF-FF-FF。
 
 ### 2.2 arp_resp
