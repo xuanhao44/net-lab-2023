@@ -116,7 +116,7 @@ uint8_t *mac = (uint8_t *)map_get(&arp_table, ip);
 
 如果没有（对应 ip 的包）的话，那么就再看看是不是 target_ip 为本机 ip 的 request 报文，是的话就 response 一下。
 
-# 3 实验结果和分析
+## 3 实验结果和分析
 
 结果如下：
 
