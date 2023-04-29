@@ -100,8 +100,8 @@ void ip_fragment_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol, int id, u
 
     // Step2
     // 填写 IP 数据报头部字段。
-    hdr->version = IP_VERSION_4;
     hdr->hdr_len = sizeof(ip_hdr_t) / IP_HDR_LEN_PER_BYTE;
+    hdr->version = IP_VERSION_4;
     hdr->tos = 0;
     hdr->total_len16 = swap16(buf->len);
     hdr->id16 = swap16(id);
@@ -139,25 +139,31 @@ void ip_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol)
 
     // Step2
     // 如果超过 IP 协议最大负载包长，则需要分片发送。
-    buf_t* ip_buf = NULL;
-    static uint16_t id = 0;
+    buf_t ip_buf;
+    static int id = 0;
     // IP 协议利用一个计数器，每产生 IP 分组（而非分片）计数器加 1，作为该 IP 分组的标识
     int i = 0; // 分片数标记
     while (buf->len > fragment_len) {
-        buf_init(ip_buf, fragment_len); // 首先调用 buf_init() 初始化一个 ip_buf
-        memcpy(ip_buf->data, buf->data, fragment_len);
-        ip_fragment_out(ip_buf, ip, protocol, id, i * fragment_len, 1); // 调用 ip_fragment_out() 函数发送出去
+        buf_init(&ip_buf, fragment_len); // 首先调用 buf_init() 初始化一个 ip_buf
+        memcpy(&ip_buf.data, buf->data, fragment_len);
+        ip_fragment_out(&ip_buf, ip, protocol, id, i * fragment_len, 1); // 调用 ip_fragment_out() 函数发送出去
         buf_remove_header(buf, fragment_len); // 剔除已发送部分
         i++;
     }
 
     // 如果截断后最后的一个分片小于或等于 IP 协议最大负载包长——这样就放到 Step3 处理
     // 调用 buf_init() 初始化一个 ip_buf，大小等于该分片大小，再调用 ip_fragment_out() 函数发送出去。注意，最后一个分片的 MF = 0。
+
     // Step3
     // 如果没有超过 IP 协议最大负载包长，则直接调用 ip_fragment_out() 函数发送出去。
-    ip_fragment_out(ip_buf, ip, protocol, id, i * fragment_len, 0);
+    buf_init(&ip_buf, buf->len);
+    memcpy(ip_buf.data, buf->data, buf->len);
+    ip_fragment_out(&ip_buf, ip, protocol, id, i * fragment_len, 0);
     // 分片的最后一片，片偏移是 i * fragment_len
     // 单独的一片的片偏移也可以表示为 i * fragment_len，因为如果不经历分片，则 i = 0，也是一样的效果
+
+    // 最后 id 增 1
+    id++;
 }
 
 /**
