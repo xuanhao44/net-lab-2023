@@ -26,9 +26,9 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     uint16_t total_len16 = swap16(hdr->total_len16);
 
     // S2 常规检查
-    if (buf->len < IP_HDR_LEN_PER_BYTE * hdr->hdr_len) // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
+    if (buf->len < sizeof(ip_hdr_t)) // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
     {
-        return; // 也有的人使用的是 sizeof(ip_hdr_t)，不过我觉得不妥。
+        return; // 还有一种写法是 IP_HDR_LEN_PER_BYTE * hdr->hdr_len
     }
     if (hdr->version != IP_VERSION_4) // IP 头部的版本号是否为 IPv4: 0100，也即 4
     {
@@ -44,10 +44,10 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     }
 
     // S3 首部校验和再计算
-    uint16_t hdr_checksum16 = hdr->hdr_checksum16;                      // 先把 IP 头部的头部校验和字段用其他变量保存起来
-    hdr->hdr_checksum16 = 0;                                            // 将该头部校验和字段置 0
-    uint16_t re_checksum16 = checksum16((uint16_t *)hdr, hdr->hdr_len); // 然后调用 checksum16 函数来计算头部校验和
-    if (hdr_checksum16 != swap16(re_checksum16))                        // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
+    uint16_t hdr_checksum16 = hdr->hdr_checksum16;                          // 先把 IP 头部的头部校验和字段用其他变量保存起来
+    hdr->hdr_checksum16 = 0;                                                // 将该头部校验和字段置 0
+    uint16_t re_checksum16 = checksum16((uint16_t *)hdr, sizeof(ip_hdr_t)); // 然后调用 checksum16 函数来计算头部校验和
+    if (hdr_checksum16 != swap16(re_checksum16))                            // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
     {
         return;
     }
@@ -64,7 +64,7 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     // S5 去掉 IP 报头
     // 调用 buf_remove_header() 函数去掉 IP 报头。
     // 同样注意 hdr 之后就不能用了，所以删除之前存一下要用的内容
-    buf_remove_header(buf, IP_HDR_LEN_PER_BYTE * hdr->hdr_len);
+    buf_remove_header(buf, sizeof(ip_hdr_t));
 
     // S6 调用 net_in() 函数向上层传递数据包
     // 调用 net_in() 函数向上层传递数据包。如果是不能识别的协议类型，即调用 icmp_unreachable() 返回 ICMP 协议不可达信息。
@@ -132,15 +132,18 @@ void ip_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol)
 {
     // TO-DO
 
-    // Step1
-    // 首先检查从上层传递下来的数据报包长是否大于 IP 协议最大负载包长
-    // 即（1500 字节（MTU）减去 IP 首部长度）
+    // S1 IP 协议最大负载包长的计算
+    // 1500 字节（MTU）减去 IP 首部长度。书上的写法还有除以 8 后向下取整，然后再乘以 8 的步骤。
+    // 但在该实验中目前最大负载长就是 1500 - 20 = 1480，就是 8 的倍数，所以不这么写也不会出错。
     int fragment_len = (ETHERNET_MAX_TRANSPORT_UNIT - sizeof(ip_hdr_t)) / 8 * 8;
 
-    buf_t ip_buf;                   // 用于承载 IP 数据的数据包，不能用指针，因为需要从 buf 复制过来数据进行处理
-    static int id = 0;              // IP 协议利用一个计数器，每产生 IP 分组（而非分片）计数器加 1，作为该 IP 分组的标识。很不巧，ip_fragment_out 的参数用的是 int
-    int i = 0;                      // 分片数标记
-    while (buf->len > fragment_len) // Step2 如果超过 IP 协议最大负载包长，则需要分片发送。
+    buf_t ip_buf;      // 用于承载 IP 数据的数据包，不能用指针，因为需要从 buf 复制过来数据进行处理
+    static int id = 0; // IP 协议利用一个计数器，每产生 IP 分组（而非分片）计数器加 1，作为该 IP 分组的标识。很不巧，ip_fragment_out 的参数用的是 int
+    int i = 0;         // 分片数标记
+
+    // S2 如果超过 IP 协议最大负载包长，则需要分片发送
+    // 下面循环中发送的数据包分片不包含最后一片，最后一个分片放到 S3 和小于最大负载包长的数据包一起处理。
+    while (buf->len > fragment_len)
     {
         buf_init(&ip_buf, fragment_len);                                 // 首先调用 buf_init() 初始化一个 ip_buf
         memcpy(ip_buf.data, buf->data, fragment_len);                    // 抽出一个最大负载的长度的数据
@@ -149,18 +152,14 @@ void ip_out(buf_t *buf, uint8_t *ip, net_protocol_t protocol)
         i++;
     }
 
-    // 最后的一个分片：放到 Step3 处理。
-
-    // Step3
-    // 如果没有超过 IP 协议最大负载包长，则直接调用 ip_fragment_out() 函数发送出去。
+    // S3
+    // 最后一个分片和小于最大负载包长的数据包的发送
     buf_init(&ip_buf, buf->len);
-    memcpy(ip_buf.data, buf->data, buf->len); // 大小就等于该分片大小
-    // 分片的最后一片，大小就等于该分片大小；单独的一片也是一样
+    memcpy(ip_buf.data, buf->data, buf->len); // 最后一个分片，大小就等于该分片大小；单独的一片也是一样
     ip_fragment_out(&ip_buf, ip, protocol, id, i * fragment_len, 0);
-    // 分片的最后一片，片偏移是 i * fragment_len
-    // 单独的一片的片偏移也可以表示为 i * fragment_len，因为如果不经历分片，则 i = 0，也是一样的效果
+    // 最后一个分片，片偏移是 i * fragment_len；单独的一片的片偏移也可以表示为 i * fragment_len，因为如果不经历分片，则 i = 0，也是一样的效果
 
-    // 最后 id 增 1
+    // S4 最后 id 增 1
     id++;
 }
 
