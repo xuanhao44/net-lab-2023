@@ -13,13 +13,13 @@ static void icmp_resp(buf_t *req_buf, uint8_t *src_ip)
     // TO-DO
 
     // Step1
-    // 首先做报头检测，如果接收到的包长小于 ICMP 头部长度，则丢弃不处理。
+    // 调用 buf_init() 来初始化 txbuf，然后封装报头和数据，数据部分可以拷贝来自接收的回显请求报文中的数据。
 
     // Step2
-    // 接着，查看该报文的 ICMP 类型是否为回显请求。
+    // 填写校验和，ICMP 的校验和和 IP 协议校验和算法是一样的。
 
     // Step3
-    // 如果是，则调用 icmp_resp() 函数回送一个回显应答（ping 应答）。
+    // 调用 ip_out() 函数将数据报发送出去。
 }
 
 /**
