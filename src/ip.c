@@ -58,22 +58,24 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     int padding_len = buf->len - hdr->total_len16; // 能到这一步就是一定大于等于 0 了
     if (padding_len > 0)
     {
-        buf_add_padding(buf, padding_len);
+        buf_remove_padding(buf, padding_len);
     }
 
-    // S5 去掉 IP 报头
-    // 调用 buf_remove_header() 函数去掉 IP 报头。
-    // 同样注意 hdr 之后就不能用了，所以删除之前存一下要用的内容
-    buf_remove_header(buf, sizeof(ip_hdr_t));
-
-    // S6 调用 net_in() 函数向上层传递数据包
+    // S5 调用 net_in() 函数向上层传递数据包
     // 调用 net_in() 函数向上层传递数据包。如果是不能识别的协议类型，即调用 icmp_unreachable() 返回 ICMP 协议不可达信息。
     if ( // protocol == NET_PROTOCOL_TCP ||
         protocol == NET_PROTOCOL_UDP ||
         protocol == NET_PROTOCOL_ICMP) // ICMP 使用 IP 数据包传输，某种程度上算是 IP 的上层协议了
     {
+        // 去掉 IP 报头
+        // 调用 buf_remove_header() 函数去掉 IP 报头。
+        buf_remove_header(buf, sizeof(ip_hdr_t));
+
         net_in(buf, protocol, src_ip);
+        return;
     }
+
+    // 这里不要去掉报头！
     icmp_unreachable(buf, src_ip, ICMP_CODE_PROTOCOL_UNREACH);
     // 必做任务只要求做到 UDP，TCP 不需要做，所以在做 IP/ICMP 自测时，当收到 TCP 报文可以当作不能处理，需回送一个 ICMP 协议不可达报文。
     // 但是当你已经做到 UDP/TCP 以上协议，用另外一套自测环境，就不用再返回来做 IP/ICMP 自测。
