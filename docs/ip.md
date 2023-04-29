@@ -73,6 +73,8 @@ IP_HDR_LEN_PER_BYTE * hdr->hdr_len
 
 常量来自于 include/ip.h。
 
+但是由于太长，所以其实也可以写另外一个 sizeof(ip_hdr_t)。
+
 ### 2.2 checksum16
 
 流程：
