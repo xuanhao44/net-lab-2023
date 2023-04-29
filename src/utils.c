@@ -92,7 +92,7 @@ uint16_t checksum16(uint16_t *data, size_t len)
     // 如果最后还剩 8 个 bit 值，也要相加这个 8bit 值。
     if (len % 2 == 1)
     {
-        res32 += data[len / 2 + 1]; // 在低 8 位，就是 &0XFF，不过不写这些也行
+        res32 += data[len / 2]; // 在低 8 位，就是 &0XFF，不过不写这些也行
     }
 
     // Step3
