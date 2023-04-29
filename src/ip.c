@@ -9,34 +9,76 @@
  *
  * @param buf 要处理的数据包
  * @param src_mac 源 mac 地址
+ *
+ * 注：分片重组是附加题，所以先不考虑重组的问题
  */
 void ip_in(buf_t *buf, uint8_t *src_mac)
 {
     // TO-DO
 
-    // Step1
-    // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
+    // S1 取出需要的数据
+    ip_hdr_t *hdr = (ip_hdr_t *)buf->data;
+    // 常规数据（根据后面需要来加到这里）
+    uint8_t protocol = hdr->protocol;
+    uint8_t src_ip[NET_IP_LEN];
+    memcpy(src_ip, hdr->src_ip, NET_IP_LEN);
+    // uint16 的 swap
+    uint16_t total_len16 = swap(hdr->total_len16);
+    uint16_t id16 = swap(hdr->id16);
+    uint16_t flags_fragment16 = swap(hdr->flags_fragment16);
 
-    // Step2
-    // 接下来做报头检测，检查内容至少包括：IP 头部的版本号是否为 IPv4，总长度字段小于或等于收到的包的长度等，如果不符合这些要求，则丢弃不处理。
+    // S2 常规检查
+    if (buf->len < IP_HDR_LEN_PER_BYTE * hdr->hdr_len) // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
+    {
+        return; // 也有的人使用的是 sizeof(ip_hdr_t)，不过我觉得不妥。
+    }
+    if (hdr->version != IP_VERSION_4) // IP 头部的版本号是否为 IPv4: 0100，也即 4
+    {
+        return;
+    }
+    if (total_len16 > buf->len) // 总长度字段小于或等于收到的包的长度，因为包中可能有 padding
+    {
+        return;
+    }
+    if (memcmp(hdr->dst_ip, net_if_ip, NET_IP_LEN) != 0) // 对比目的 IP 地址是否为本机的 IP 地址，如果不是，则丢弃不处理。
+    {
+        return;
+    }
 
-    // Step3
-    // 先把 IP 头部的头部校验和字段用其他变量保存起来，
-    // 接着将该头部校验和字段置 0，
-    // 然后调用 checksum16 函数来计算头部校验和，
-    // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理，如果一致，则再将该头部校验和字段恢复成原来的值。
+    // S3 首部校验和再计算
+    uint16_t hdr_checksum16 = hdr->hdr_checksum16;          // 先把 IP 头部的头部校验和字段用其他变量保存起来
+    hdr->hdr_checksum16 = 0;                                // 将该头部校验和字段置 0
+    uint16_t re_checksum16 = checksum16(hdr, hdr->hdr_len); // 然后调用 checksum16 函数来计算头部校验和，
+    if (hdr_checksum16 != swap(re_checksum16))              // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
+    {
+        return;
+    }
+    hdr->hdr_checksum16 = hdr_checksum16; // 如果一致，则再将该头部校验和字段恢复成原来的值。
 
-    // Step4
-    // 对比目的 IP 地址是否为本机的 IP 地址，如果不是，则丢弃不处理。
-
-    // Step5
+    // S4 去 padding
     // 如果接收到的数据包的长度大于 IP 头部的总长度字段，则说明该数据包有填充字段，可调用 buf_remove_padding() 函数去除填充字段。
+    int padding_len = buf->len - hdr->total_len16; // 能到这一步就是一定大于等于 0 了
+    if (padding_len > 0)
+    {
+        buf_add_padding(hdr, padding_len);
+    }
 
-    // Step6
+    // S5 去掉 IP 报头
     // 调用 buf_remove_header() 函数去掉 IP 报头。
+    // 同样注意 hdr 之后就不能用了，所以删除之前存一下要用的内容
+    buf_remove_header(buf, IP_HDR_LEN_PER_BYTE * hdr->hdr_len);
 
-    // Step7
+    // S6 调用 net_in() 函数向上层传递数据包
     // 调用 net_in() 函数向上层传递数据包。如果是不能识别的协议类型，即调用 icmp_unreachable() 返回 ICMP 协议不可达信息。
+    if ( // protocol == NET_PROTOCOL_TCP ||
+        protocol == NET_PROTOCOL_UDP ||
+        protocol == NET_PROTOCOL_ICMP) // ICMP 使用 IP 数据包传输，某种程度上算是 IP 的上层协议了
+    {
+        net_in(buf, protocol, src_ip);
+    }
+    icmp_unreachable(buf, src_ip, ICMP_CODE_PROTOCOL_UNREACH);
+    // 必做任务只要求做到 UDP，TCP 不需要做，所以在做 IP/ICMP 自测时，当收到 TCP 报文可以当作不能处理，需回送一个 ICMP 协议不可达报文。
+    // 但是当你已经做到 UDP/TCP 以上协议，用另外一套自测环境，就不用再返回来做 IP/ICMP 自测。
 }
 
 /**
