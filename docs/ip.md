@@ -46,7 +46,9 @@
 
 3. 首部校验和再计算。
 
-   清除现有的 checksum，然后再用首部去计算新的 checksum 并比较，应相同，否则丢弃
+   清除现有的 checksum，然后再用首部去计算新的 checksum 并比较，应相同，否则丢弃。下面是对 checksum 加法的一些补充说明。
+
+   ![net_lab_ip_checksum16](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_ip_checksum16.jpg)
 
 4. 去 padding。没什么好说的。
 
@@ -63,15 +65,15 @@
 
 需要注意的点：
 
-数据包首部长度字段 hdr->hdr_len 的单位是 4 字节，所以在表示数据包首部长度的时候需要写成：
+1. 数据包首部长度字段 hdr->hdr_len 的单位是 4 字节，所以在表示数据包首部长度的时候需要写成：
 
-```c
-IP_HDR_LEN_PER_BYTE * hdr->hdr_len
-```
+   ```c
+   IP_HDR_LEN_PER_BYTE * hdr->hdr_len
+   ```
 
-常量来自于 include/ip.h。
+   其中常量来自于 include/ip.h。但上式太长，其实也可以用另外一种表示：sizeof(ip_hdr_t)。
 
-但是由于太长，所以其实也可以写另外一个 sizeof(ip_hdr_t)。
+2. checksum 的比较中不涉及大小端，不需要 swap。
 
 ### 2.2 checksum16
 
@@ -227,4 +229,4 @@ while (buf->len > fragment_len)
 ## 5 意见和建议
 
 1. 指导书修订很不及时，让学生在做实验的时候遇到了很多不该浪费时间的地方，望及时改正！
-2. IP 的测试极不全面，很多地方的错误完全检查不出来，无法达到自测的目的。比如 ip_in 的 去 padding 的部分，我写成了 add_padding 居然都没有问题！太离谱了。
+2. IP 的测试极不全面，很多地方的错误完全检查不出来，无法达到自测的目的。而许多错误到了 ICMP 实验中才能发现。

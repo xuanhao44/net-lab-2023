@@ -47,7 +47,7 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     uint16_t hdr_checksum16 = hdr->hdr_checksum16;                          // 先把 IP 头部的头部校验和字段用其他变量保存起来
     hdr->hdr_checksum16 = 0;                                                // 将该头部校验和字段置 0
     uint16_t re_checksum16 = checksum16((uint16_t *)hdr, sizeof(ip_hdr_t)); // 然后调用 checksum16 函数来计算头部校验和
-    if (hdr_checksum16 != swap16(re_checksum16))                            // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
+    if (hdr_checksum16 != re_checksum16)                                    // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
     {
         return;
     }
