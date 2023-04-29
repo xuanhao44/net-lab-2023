@@ -78,16 +78,33 @@ uint8_t ip_prefix_match(uint8_t *ipa, uint8_t *ipb)
 uint16_t checksum16(uint16_t *data, size_t len)
 {
     // TO-DO
+    uint16_t checksum16 = 0;
 
     // Step1
-    // 把 data 看成是每 16 个 bit（即 2 个字节）组成一个数，相加（注意，16 位加法的结果可能会超过 16 位，因此加法结果需要用 32 位数来保存）。
-
-    // Step2
-    // 如果最后还剩 8 个 bit 值，也要相加这个 8bit 值。
+    // 把 data 看成是每 16 个 bit（即 2 个字节）组成一个数，相加。
+    // 注意，16 位加法的结果可能会超过 16 位，因此加法结果需要用 32 位数来保存。
+    uint32_t res32 = 0;
+    for (int i = 0; i < len; i++)
+    {
+        if (i == len - 1) // Step2 如果最后还剩 8 个 bit 值，也要相加这个 8bit 值。
+        {
+            res32 += data[i] & 0xFF;
+        }
+        else
+        {
+            res32 += data[i];
+        }
+    }
 
     // Step3
     // 判断相加后 32bit 结果值的高 16 位是否为 0，如果不为 0，则将高 16 位和低 16 位相加，依次循环，直至高 16 位为 0 为止。
+    while (res32 >> 16)
+    {
+        res32 = (res32 >> 16) + (res32 & 0xFFFF);
+    }
 
     // Step4
     // 将上述的和（低 16 位）取反，即得到校验和。
+    checksum16 = ~(uint16_t)res32;
+    return checksum16;
 }

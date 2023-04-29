@@ -22,10 +22,8 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     uint8_t protocol = hdr->protocol;
     uint8_t src_ip[NET_IP_LEN];
     memcpy(src_ip, hdr->src_ip, NET_IP_LEN);
-    // uint16 的 swap
-    uint16_t total_len16 = swap(hdr->total_len16);
-    uint16_t id16 = swap(hdr->id16);
-    uint16_t flags_fragment16 = swap(hdr->flags_fragment16);
+    // uint16 的 swap16
+    uint16_t total_len16 = swap16(hdr->total_len16);
 
     // S2 常规检查
     if (buf->len < IP_HDR_LEN_PER_BYTE * hdr->hdr_len) // 如果数据包的长度小于 IP 头部长度，丢弃不处理。
@@ -48,8 +46,8 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     // S3 首部校验和再计算
     uint16_t hdr_checksum16 = hdr->hdr_checksum16;          // 先把 IP 头部的头部校验和字段用其他变量保存起来
     hdr->hdr_checksum16 = 0;                                // 将该头部校验和字段置 0
-    uint16_t re_checksum16 = checksum16(hdr, hdr->hdr_len); // 然后调用 checksum16 函数来计算头部校验和，
-    if (hdr_checksum16 != swap(re_checksum16))              // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
+    uint16_t re_checksum16 = checksum16((uint16_t *)hdr, hdr->hdr_len); // 然后调用 checksum16 函数来计算头部校验和
+    if (hdr_checksum16 != swap16(re_checksum16))              // 如果与 IP 头部的首部校验和字段不一致，丢弃不处理
     {
         return;
     }
@@ -60,7 +58,7 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
     int padding_len = buf->len - hdr->total_len16; // 能到这一步就是一定大于等于 0 了
     if (padding_len > 0)
     {
-        buf_add_padding(hdr, padding_len);
+        buf_add_padding(buf, padding_len);
     }
 
     // S5 去掉 IP 报头
