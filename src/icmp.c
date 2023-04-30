@@ -17,7 +17,6 @@ static void icmp_resp(buf_t *req_buf, uint8_t *src_ip)
     buf_copy(&txbuf, req_buf, req_buf->len); // 直接拷贝！
     icmp_hdr_t *resp_hdr = (icmp_hdr_t *)txbuf.data;
     resp_hdr->type = ICMP_TYPE_ECHO_REPLY;
-    resp_hdr->code = 0;
 
     // S2 填写校验和
     // ICMP 的校验和和 IP 协议校验和算法是一样的。
