@@ -120,7 +120,7 @@ void udp_out(buf_t *buf, uint16_t src_port, uint8_t *dst_ip, uint16_t dst_port)
     udp_hdr_t *hdr = (udp_hdr_t *)buf->data;
     hdr->src_port16 = swap16(src_port);
     hdr->dst_port16 = swap16(dst_port);
-    hdr->total_len16 = swap16(sizrof(buf));
+    hdr->total_len16 = swap16(sizeof(buf));
 
     // Step3
     // 先将校验和字段填充 0，然后调用 udp_checksum() 函数计算出校验和，再将计算出来的校验和结果填入校验和字段。
