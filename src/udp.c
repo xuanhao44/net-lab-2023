@@ -20,8 +20,6 @@ static uint16_t udp_checksum(buf_t *buf, uint8_t *src_ip, uint8_t *dst_ip)
 {
     // TO-DO
 
-    udp_hdr_t *hdr = (udp_hdr_t *)buf->data;
-
     // S1 复制一整个
     buf_t tmp_buf;
     buf_copy(&tmp_buf, buf, sizeof(buf));
@@ -73,7 +71,7 @@ void udp_in(buf_t *buf, uint8_t *src_ip)
     // 如果该值与接收到的 UDP 数据报的校验和不一致，则丢弃不处理。
     uint16_t tmp_checksum16 = hdr->checksum16;
     hdr->checksum16 = 0;
-    uint16_t re_checksum16 = udp_checksum(buf, swap16(src_ip), swap16(net_if_ip));
+    uint16_t re_checksum16 = udp_checksum(buf, src_ip, net_if_ip);
     if (tmp_checksum16 != re_checksum16)
     {
         return;
@@ -82,7 +80,9 @@ void udp_in(buf_t *buf, uint8_t *src_ip)
 
     // Step3
     // 调用 map_get() 函数查询 udp_table 是否有该目的端口号对应的处理函数（回调函数）。
-    udp_handler_t *handler = (udp_handler_t *)map_get(&udp_table, swap16(hdr->src_port16));
+    uint16_t src_port16 = swap16(hdr->src_port16); // 内联函数不允许取地址！
+    uint16_t dst_port16 = swap16(hdr->dst_port16);
+    udp_handler_t *handler = (udp_handler_t *)map_get(&udp_table, (void *)&dst_port16);
 
     // Step4
     // 如果没有找到，则调用 buf_add_header() 函数增加 IPv4 数据报头部，再调用 icmp_unreachable() 函数发送一个端口不可达的 ICMP 差错报文。
@@ -96,7 +96,7 @@ void udp_in(buf_t *buf, uint8_t *src_ip)
     // Step5
     // 如果能找到，则去掉 UDP 报头，调用处理函数来做相应处理。
     buf_remove_header(buf, sizeof(udp_hdr_t));
-    (*handler)(buf->data, buf->len, src_ip, swap16(hdr->src_port16));
+    (*handler)(buf->data, buf->len, src_ip, src_port16);
 }
 
 /**
