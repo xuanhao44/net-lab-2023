@@ -35,12 +35,6 @@ static uint16_t udp_checksum(buf_t *buf, uint8_t *src_ip, uint8_t *dst_ip)
     peso_hdr->protocol = NET_PROTOCOL_UDP;
     peso_hdr->total_len16 = swap16(buf->len); // 需要解释
 
-    // 数据非偶数字长时填充一个字节的 0
-    if (buf->len % 2)
-    {
-        buf_add_padding(buf, 1);
-    }
-
     // S4 计算 UDP 校验和，并返回
     // UDP 校验和需要覆盖 UDP 头部、UDP 数据和一个伪头部。
     return checksum16((uint16_t *)(tmp_buf.data), tmp_buf.len);
