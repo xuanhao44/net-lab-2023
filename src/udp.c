@@ -80,7 +80,7 @@ void udp_in(buf_t *buf, uint8_t *src_ip)
 
     // Step3
     // 调用 map_get() 函数查询 udp_table 是否有该目的端口号对应的处理函数（回调函数）。
-    uint16_t src_port16 = swap16(hdr->src_port16); // 内联函数不允许取地址！
+    uint16_t src_port16 = swap16(hdr->src_port16); // 函数返回值不可取地址
     uint16_t dst_port16 = swap16(hdr->dst_port16);
     udp_handler_t *handler = (udp_handler_t *)map_get(&udp_table, (void *)&dst_port16);
 
@@ -125,7 +125,7 @@ void udp_out(buf_t *buf, uint16_t src_port, uint8_t *dst_ip, uint16_t dst_port)
     // Step3
     // 先将校验和字段填充 0，然后调用 udp_checksum() 函数计算出校验和，再将计算出来的校验和结果填入校验和字段。
     hdr->checksum16 = 0;
-    hdr->checksum16 = checksum16((uint16_t *)hdr, sizeof(udp_hdr_t));
+    hdr->checksum16 = udp_checksum(buf, net_if_ip, dst_ip);
 
     // Step4
     // 调用 ip_out() 函数发送 UDP 数据报。
