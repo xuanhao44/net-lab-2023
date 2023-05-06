@@ -54,7 +54,7 @@ void udp_in(buf_t *buf, uint8_t *src_ip)
     // 首先做包检查，检测该数据报的长度是否小于 UDP 首部长度，
     // 或者接收到的包长度小于 UDP 首部长度字段给出的长度，如果是，则丢弃不处理。
     udp_hdr_t *hdr = (udp_hdr_t *)buf->data;
-    if (buf->len < sizeof(udp_hdr_t) || buf->len < hdr->total_len16)
+    if (buf->len < sizeof(udp_hdr_t) || buf->len < swap16(hdr->total_len16))
     {
         return;
     }
@@ -114,7 +114,7 @@ void udp_out(buf_t *buf, uint16_t src_port, uint8_t *dst_ip, uint16_t dst_port)
     udp_hdr_t *hdr = (udp_hdr_t *)buf->data;
     hdr->src_port16 = swap16(src_port);
     hdr->dst_port16 = swap16(dst_port);
-    hdr->total_len16 = swap16(sizeof(buf));
+    hdr->total_len16 = swap16(buf->len);
 
     // Step3
     // 先将校验和字段填充 0，然后调用 udp_checksum() 函数计算出校验和，再将计算出来的校验和结果填入校验和字段。

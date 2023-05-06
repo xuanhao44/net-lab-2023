@@ -85,14 +85,11 @@ uint16_t checksum16(uint16_t *data, size_t len)
     uint32_t res32 = 0;              // 注意，16 位加法的结果可能会超过 16 位，因此加法结果需要用 32 位数来保存。
     for (int i = 0; i < len; i += 2) // len 的单位是字节 (8bit)，但是我们步进的单位是 16bit
     {
+        if (i == len - 1)
+        {
+            res32 += (uint8_t)data[len - 1]; // Step2 最后还剩 8 个 bit 值，也要相加这个 8bit 值。
+        }
         res32 += data[i / 2];
-    }
-
-    // Step2
-    // 如果最后还剩 8 个 bit 值，也要相加这个 8bit 值。
-    if (len % 2 == 1)
-    {
-        res32 += data[len / 2] << 8;
     }
 
     // Step3
