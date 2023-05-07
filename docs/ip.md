@@ -46,7 +46,9 @@
 
 3. 首部校验和再计算。
 
-   清除现有的 checksum，然后再用首部去计算新的 checksum 并比较，应相同，否则丢弃。下面是对 checksum 加法的一些补充说明。
+   清除现有的 checksum，然后再用首部去计算新的 checksum 并比较，应相同，否则丢弃。
+
+   此外，下面是对 checksum 的一些补充说明。
 
    ![net_lab_ip_checksum16](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_ip_checksum16.jpg)
 
