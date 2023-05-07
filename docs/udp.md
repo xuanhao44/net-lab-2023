@@ -100,7 +100,7 @@ wireshark 捕获到的报文数据：（wireshark 的 [udp.pcap](../testing/data
 - 192.168.56.1（测试工具）
 - 192.168.56.45（框架）
 
-第 5 组，框架首先广播发送了无回报 ARP 包（ARP announcemennt）声明了自己的 IP 和 MAC 地址。
+第 5 组，框架首先广播发送了无回报 ARP 包（ARP announcement）声明了自己的 IP 和 MAC 地址。
 
 第 6 组，测试工具向框架从 60000 端口到 60000 端口发送了包长为 27 的 UDP 包。
 
