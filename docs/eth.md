@@ -1,6 +1,6 @@
 # eth 以太网实验
 
-文章来自于：https://github.com/xuanhao44/net-lab-2023
+文章来自于：<https://github.com/xuanhao44/net-lab-2023>
 
 ## 1 对结构和功能的概览
 
