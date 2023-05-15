@@ -8,12 +8,12 @@
 typedef struct tcp_flags {
     uint8_t fin : 1;    // 释放连接
     uint8_t syn : 1;    // 连接/接受连接
-    uint8_t rst : 1;    // 出错, 重新连接
+    uint8_t rst : 1;    // 出错，重新连接
     uint8_t psh : 1;    // Push function. 不需要等待缓冲区满就转发给应用层
     uint8_t ack : 1;    // 确认字段有效
     uint8_t urg : 1;    // 紧急
-    uint8_t ece : 1;    // ECN-Echo 
-    uint8_t cwr : 1;    // congestion window reduced 
+    uint8_t ece : 1;    // ECN-Echo
+    uint8_t cwr : 1;    // congestion window reduced
 } tcp_flags_t;
 
 static const tcp_flags_t tcp_flags_null = {};
@@ -28,17 +28,17 @@ typedef struct tcp_hdr {
     uint32_t seq_number32;
     uint32_t ack_number32;
     uint8_t reserved : 4;   // 置零
-    uint8_t data_offset : 4;// 这个头有多少个32位字长, 后面的是数据
+    uint8_t data_offset : 4;// 这个头有多少个 32 位字长，后面的是数据
     tcp_flags_t flags;
-    uint16_t window_size16; // 接收窗口大小, 流量控制用
-    uint16_t chunksum16;    // 校验和
+    uint16_t window_size16; // 接收窗口大小，流量控制用
+    uint16_t checksum16;    // 校验和
     uint16_t urgent_pointer16;
 } tcp_hdr_t;
 
 typedef struct tcp_peso_hdr {
-    uint8_t src_ip[4];    // 源IP地址
-    uint8_t dst_ip[4];    // 目的IP地址
-    uint8_t placeholder;  // 必须置0,用于填充对齐
+    uint8_t src_ip[4];    // 源 IP 地址
+    uint8_t dst_ip[4];    // 目的 IP 地址
+    uint8_t placeholder;  // 必须置 0，用于填充对齐
     uint8_t protocol;     // 协议号
     uint16_t total_len16; // 整个数据包的长度
 } tcp_peso_hdr_t;
@@ -72,7 +72,7 @@ typedef struct tcp_connect {
     tcp_state_t state;
     uint16_t local_port, remote_port;
     uint8_t ip[NET_IP_LEN];
-    uint32_t unack_seq, next_seq; // tx_buf中前[next_seq - unack_seq]字节已经发送，unack_seq未确认的起始序号，next_seq下一发送序号
+    uint32_t unack_seq, next_seq; // tx_buf 中前 [next_seq - unack_seq] 字节已经发送，unack_seq 未确认的起始序号，next_seq 下一发送序号
     uint32_t ack;
     uint16_t remote_mss;
     uint16_t remote_win;
