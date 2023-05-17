@@ -78,7 +78,8 @@ int tcp_open(uint16_t port, tcp_handler_t handler)
 
 /**
  * @brief 完成了缓存分配工作，状态也会切换为 TCP_SYN_RCVD
- *        rx_buf 和 tx_buf 在触及边界时会把数据重新移动到头部，防止溢出。
+ *
+ * rx_buf 和 tx_buf 在触及边界时会把数据重新移动到头部，防止溢出。
  *
  * @param connect
  */
@@ -96,7 +97,8 @@ static void init_tcp_connect_rcvd(tcp_connect_t *connect)
 
 /**
  * @brief 释放 TCP 连接，这会释放分配的空间，并把状态变回 LISTEN。
- *        一般这个后边都会跟个 map_delete(&connect_table, &key) 把状态变回 CLOSED
+ *
+ * 一般这个后边都会跟个 map_delete(&connect_table, &key) 把状态变回 CLOSED
  *
  * @param connect
  */
@@ -136,7 +138,7 @@ static _Thread_local uint16_t delete_port;
 /**
  * @brief tcp_close 使用这个函数来查找可以关闭的连接，使用 thread-local 变量 delete_port 传递端口号。
  *
- * @param key,value,timestamp
+ * @param key, value, timestamp
  */
 static void close_port_fn(void *key, void *value, time_t *timestamp)
 {
@@ -197,7 +199,8 @@ static uint16_t tcp_write_to_buf(tcp_connect_t *connect, buf_t *buf)
 
 /**
  * @brief 发送 TCP 包，seq_number32 = connect->next_seq - buf->len
- *        buf 里的数据将作为负载，加上 tcp 头发送出去。如果 flags 包含 syn 或 fin，seq 会递增。
+ *
+ * buf 里的数据将作为负载，加上 tcp 头发送出去。如果 flags 包含 syn 或 fin，seq 会递增。
  *
  * @param buf
  * @param connect
