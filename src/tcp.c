@@ -111,18 +111,24 @@ static void release_tcp_connect(tcp_connect_t *connect)
 
 static uint16_t tcp_checksum(buf_t *buf, uint8_t *src_ip, uint8_t *dst_ip)
 {
-    uint16_t len = (uint16_t)buf->len;
-    tcp_peso_hdr_t *peso_hdr = (tcp_peso_hdr_t *)(buf->data - sizeof(tcp_peso_hdr_t));
-    tcp_peso_hdr_t pre; // 暂存被覆盖的 IP 头
-    memcpy(&pre, peso_hdr, sizeof(tcp_peso_hdr_t));
+    // S1 复制一整个
+    buf_t tmp_buf;
+    buf_copy(&tmp_buf, buf, sizeof(buf));
+
+    // S2 增加 TCP 伪头部
+    buf_add_header(&tmp_buf, sizeof(tcp_peso_hdr_t));
+
+    // S3 填写伪头部
+    tcp_peso_hdr_t *peso_hdr = (tcp_peso_hdr_t *)tmp_buf.data;
     memcpy(peso_hdr->src_ip, src_ip, NET_IP_LEN);
     memcpy(peso_hdr->dst_ip, dst_ip, NET_IP_LEN);
     peso_hdr->placeholder = 0;
-    peso_hdr->protocol = NET_PROTOCOL_TCP;
-    peso_hdr->total_len16 = swap16(len);
-    uint16_t checksum = checksum16((uint16_t *)peso_hdr, len + sizeof(tcp_peso_hdr_t));
-    memcpy(peso_hdr, &pre, sizeof(tcp_peso_hdr_t));
-    return checksum;
+    peso_hdr->protocol = NET_PROTOCOL_UDP;
+    peso_hdr->total_len16 = swap16(buf->len); // 需要解释
+
+    // S4 计算 TCP 校验和，并返回
+    // TCP 校验和需要覆盖 TCP 头部、TCP 数据和一个伪头部。
+    return checksum16((uint16_t *)(tmp_buf.data), tmp_buf.len);
 }
 
 static _Thread_local uint16_t delete_port;
@@ -322,11 +328,8 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
     tcp_hdr_t *hdr = (tcp_hdr_t *)buf->data;
     uint16_t tmp_checksum16 = hdr->checksum16;
     hdr->checksum16 = 0;
-    // tcp_checksum 写的方式害人不浅
-    uint8_t tmp_src_ip[NET_IP_LEN];
-    memcpy(tmp_src_ip, src_ip, NET_IP_LEN);
-    uint16_t re_checksum = tcp_checksum(buf, tmp_src_ip, net_if_ip);
-    if (tmp_checksum16 != re_checksum)
+    uint16_t re_checksum16 = tcp_checksum(buf, src_ip, net_if_ip);
+    if (tmp_checksum16 != re_checksum16)
     {
         return;
     }
@@ -342,7 +345,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
     uint32_t get_seq = seq_number;
     uint32_t ack_number = swap32(hdr->ack_number32);
     uint16_t window_size = swap16(hdr->window_size16);
-    size_t hdr_len = 4 * (uint16_t)hdr->data_offset;
+    size_t hdr_len = 4 * (uint16_t)hdr->data_offset; // 占 4 位，4 字节为计算单位
     size_t data_len = buf->len - hdr_len;
     tcp_flags_t flags = hdr->flags;
 
@@ -395,7 +398,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         // 7.5 调用 buf_init 初始化 txbuf
         buf_init(connect->tx_buf, 0);
 
-        // 7.6 调用 tcp_send 将 txbuf 发送出去，也就是回复一个 tcp_flags_ack_syn（SYN+ACK）报文
+        // 7.6 调用 tcp_send 将 txbuf 发送出去，也就是回复一个 tcp_flags_ack_syn（SYN + ACK）报文
         tcp_send(connect->tx_buf, connect, tcp_flags_ack_syn);
 
         // 7.7 处理结束，返回。
@@ -471,7 +474,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         buf_init(&txbuf, 0);
         buf_init(connect->tx_buf, 0);
 
-        // 16.2 判断是否收到关闭请求（FIN），如果是，将状态改为 TCP_LAST_ACK，ack +1，再发送一个 ACK + FIN 包，并退出
+        // 16.2 判断是否收到关闭请求（FIN），如果是，将状态改为 TCP_LAST_ACK，ack + 1，再发送一个 ACK + FIN 包，并退出
         // 这样就无需进入 CLOSE_WAIT，直接等待对方的 ACK
         if (flags.fin)
         {
