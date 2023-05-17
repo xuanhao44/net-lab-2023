@@ -359,13 +359,13 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
 
     // 6 调用 map_get 函数，根据 key 查找一个 tcp_connect_t* connect
     // 如果没有找到，则调用 map_set 建立新的链接，并设置为 CONNECT_LISTEN 状态，然后调用 mag_get 获取到该链接。
-    tcp_connect_t *connect = map_get(&connect_table, &tcp_key);
+    tcp_connect_t *connect = (tcp_connect_t *)map_get(&connect_table, &tcp_key);
     if (connect == NULL)
     {
         tcp_connect_t new_connect;
         new_connect.state = TCP_LISTEN;
         map_set(&connect_table, &tcp_key, &new_connect);
-        connect = map_get(&connect_table, &tcp_key);
+        connect = (tcp_connect_t *)map_get(&connect_table, &tcp_key);
     }
 
     // 7 如果为 TCP_LISTEN 状态，则需要完成如下功能
@@ -378,7 +378,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         }
 
         // 7.2 如果收到的 flag 不是 syn，则 reset_tcp 复位通知。因为收到的第一个包必须是 syn
-        if (flags.syn == 0)
+        if (!flags.syn)
         {
             goto reset_tcp;
         }
@@ -390,8 +390,9 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         connect->local_port = dest_port;
         connect->remote_port = src_port;
         memcpy(connect->ip, src_ip, NET_IP_LEN);
-        connect->unack_seq = 191810; // 设为随机值
-        connect->next_seq = 191810;  // 对 syn 的 ack 应答包，与 unack_seq 一致
+        srand((unsigned)time(NULL));
+        connect->unack_seq = rand();            // 设为随机值
+        connect->next_seq = connect->unack_seq; // 对 syn 的 ack 应答包，与 unack_seq 一致
         connect->ack = seq_number + 1;
         connect->remote_win = window_size;
 
@@ -429,7 +430,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
 
     case TCP_SYN_RCVD:
         // 11 在 RCVD 状态，如果收到的包没有 ack flag，则不做任何处理
-        if (flags.ack == 0)
+        if (!flags.ack)
         {
             break;
         }
@@ -448,7 +449,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
 
     case TCP_ESTABLISHED:
         // 13 如果收到的包没有 ack 且没有 fin 这两个标志，则不做任何处理
-        if (flags.ack == 0 && flags.fin == 0)
+        if (!flags.ack && !flags.fin)
         {
             break;
         }
@@ -456,12 +457,13 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         // 14 处理 ACK 的值
         // 如果是 ack 包，
         // 且 unack_seq 小于 sequence number（说明有部分数据被对端接收确认了，否则可能是之前重发的 ack，可以不处理），
-        // （且 next_seq 大于 sequence number）
+        // 且 next_seq 大于 sequence number
         // 则调用 buf_remove_header 函数，去掉被对端接收确认的部分数据，并更新 unack_seq 值
-        if (flags.ack && connect->unack_seq < ack_number) // 存在新确认的数据，更新 ACK 的值
+        if (flags.ack &&
+            connect->unack_seq < ack_number &&
+            connect->next_seq > ack_number) // 存在新确认的数据，更新 ACK 的值
         {
-            uint32_t newack_len = ack_number - connect->unack_seq;
-            buf_remove_header(connect->tx_buf, newack_len);
+            buf_remove_header(connect->tx_buf, ack_number - connect->unack_seq);
             connect->unack_seq = ack_number;
         }
 
@@ -522,7 +524,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         // 18 如果不是 FIN，则不做处理
         if (flags.fin) // 如果是，则：
         {
-            connect->ack += 1;                                 // 将 ACK + 1
+            connect->ack++;                                    // 将 ACK + 1
             buf_init(connect->tx_buf, 0);                      // 调用 buf_init 初始化 txbuf
             tcp_send(connect->tx_buf, connect, tcp_flags_ack); // 调用 tcp_send 发送一个 ACK 数据包
             goto close_tcp;                                    // 再 close_tcp 关闭 TCP
