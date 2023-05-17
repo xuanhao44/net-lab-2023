@@ -439,7 +439,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         }
 
         // 12 如果是 ack 包，需要完成如下功能
-        // 12.1 将 unack_seq +1
+        // 12.1 将 unack_seq + 1
         connect->unack_seq++;
 
         // 12.2 将状态转成 ESTABLISHED
