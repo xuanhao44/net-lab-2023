@@ -344,9 +344,8 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
     uint32_t seq_number = swap32(hdr->seq_number32);
     uint32_t get_seq = seq_number;
     uint32_t ack_number = swap32(hdr->ack_number32);
-    uint16_t window_size = swap16(hdr->window_size16);
-    size_t hdr_len = 4 * (uint16_t)hdr->data_offset; // 占 4 位，4 字节为计算单位
-    size_t data_len = buf->len - hdr_len;
+    uint16_t window_size = swap16(hdr->window_size16); // 原框架第 7 步
+    size_t hdr_len = 4 * (uint16_t)hdr->data_offset;   // 占 4 位，4 字节为计算单位
     tcp_flags_t flags = hdr->flags;
 
     // 4 调用 map_get 函数，根据 destination port 查找对应的 handler 函数
@@ -377,7 +376,8 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
             goto close_tcp;
         }
 
-        // 7.2 如果收到的 flag 不是 syn，则 reset_tcp 复位通知。因为收到的第一个包必须是 syn
+        // 7.2 如果收到的 flag 不是 syn，则 reset_tcp 复位通知
+        // 因为收到的第一个包必须是 syn
         if (!flags.syn)
         {
             goto reset_tcp;
@@ -397,10 +397,10 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         connect->remote_win = window_size;
 
         // 7.5 调用 buf_init 初始化 txbuf
-        buf_init(connect->tx_buf, 0);
+        buf_init(&txbuf, 0);
 
         // 7.6 调用 tcp_send 将 txbuf 发送出去，也就是回复一个 tcp_flags_ack_syn（SYN + ACK）报文
-        tcp_send(connect->tx_buf, connect, tcp_flags_ack_syn);
+        tcp_send(&txbuf, connect, tcp_flags_ack_syn);
 
         // 7.7 处理结束，返回。
         return;
@@ -421,7 +421,7 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
     // 10 序号相同时的处理，调用 buf_remove_header 去除头部后剩下的都是数据
     buf_remove_header(buf, hdr_len);
 
-    /* 状态转换 */
+    // 状态转换
     switch (connect->state)
     {
     case TCP_LISTEN:
@@ -468,32 +468,31 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         }
 
         // 15 接收数据，调用 tcp_read_from_buf 函数，把 buf 放入 rx_buf 中
-        tcp_read_from_buf(connect, buf);
+        int read_buf_len = tcp_read_from_buf(connect, buf);
 
         // 16 根据当前的标志位进一步处理
         // 16.1 首先调用 buf_init 初始化 txbuf
-        buf_t txbuf;
-        buf_init(&txbuf, 0);
-        buf_init(connect->tx_buf, 0);
+        buf_init(&txbuf, 0); // 其实很意外 txbuf 是全局的
 
         // 16.2 判断是否收到关闭请求（FIN），如果是，将状态改为 TCP_LAST_ACK，ack + 1，再发送一个 ACK + FIN 包，并退出
         // 这样就无需进入 CLOSE_WAIT，直接等待对方的 ACK
         if (flags.fin)
         {
             connect->state = TCP_LAST_ACK;
-            connect->ack += 1;
+            connect->ack++;
             tcp_send(connect->tx_buf, connect, tcp_flags_ack_fin);
             break;
         }
         else // 16.3 如果不是 FIN，则看看是否有数据，如果有，则发 ACK 相应，并调用 handler 回调函数进行处理
         {
-            if (data_len > 0)
+            if (read_buf_len > 0)
             {
                 (*handler)(connect, TCP_CONN_DATA_RECV);
+                tcp_send(&txbuf, connect, tcp_flags_ack);
             }
             // 16.4 调用 tcp_write_to_buf 函数，看看是否有数据需要发送，如果有，同时发数据和 ACK
-            uint16_t len = tcp_write_to_buf(connect, &txbuf);
-            if (data_len > 0 || len > 0)
+            int write_buf_len = tcp_write_to_buf(connect, &txbuf);
+            if (write_buf_len > 0)
             {
                 tcp_send(&txbuf, connect, tcp_flags_ack);
             }
@@ -524,10 +523,10 @@ void tcp_in(buf_t *buf, uint8_t *src_ip)
         // 18 如果不是 FIN，则不做处理
         if (flags.fin) // 如果是，则：
         {
-            connect->ack++;                                    // 将 ACK + 1
-            buf_init(connect->tx_buf, 0);                      // 调用 buf_init 初始化 txbuf
-            tcp_send(connect->tx_buf, connect, tcp_flags_ack); // 调用 tcp_send 发送一个 ACK 数据包
-            goto close_tcp;                                    // 再 close_tcp 关闭 TCP
+            connect->ack++;                           // 将 ACK + 1
+            buf_init(&txbuf, 0);                      // 调用 buf_init 初始化 txbuf
+            tcp_send(&txbuf, connect, tcp_flags_ack); // 调用 tcp_send 发送一个 ACK 数据包
+            goto close_tcp;                           // 再 close_tcp 关闭 TCP
         }
         break;
 
