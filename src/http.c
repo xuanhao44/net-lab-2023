@@ -113,15 +113,19 @@ static void send_file(tcp_connect_t *tcp, const char *url)
     // 根据 url 获取指定的文件
     // 查看 include/http.h: XHTTP_DOC_DIR : "../htmldocs"
     sprintf(file_path, "%s%s", XHTTP_DOC_DIR, url);
+
     if (strcmp(url, "/") == 0)
     {
         strcat(file_path, "index.html");
     }
 
+    printf("file_path: %s\n", file_path);
+
     // 若文件不存在，发送 HTTP ERROR 404
     file = fopen(file_path, "rb");
     if (file == NULL)
     {
+        perror("file unexist");
         sprintf(tx_buffer, "HTTP/1.0 404 Not Found\r\n"
                            "Sever: \r\n"
                            "Content-Type: text/html\r\n\r\n");
