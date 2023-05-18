@@ -71,6 +71,42 @@ TCP 协议的内容和 TCP 报文的结构都比较简单。所以不多赘述�
 
 1. `tcp_checksum` 函数写的很差，建议改成自己之前写的 UDP 的函数，但是注意把 UDP 替换成 TCP。（我就是没替换完全，不过还好通过 debug 发现了这个问题）
 2. 还是要把 ip 代码中 tcp 的判断加上。（同样通过 debug 发现了该问题）
+3. 记得开启 Wireshark 的 TCP checksum 验证。
 
 ## 3 实验结果和分析
 
+命令行和测试工具的输入输出：
+
+![tcp_test](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/tcp_test.jpg)
+
+wireshark 捕获到的报文数据：（wireshark 的 [tcp.pcap](../testing/data/tcp.pcap)）
+
+![tcp_pcap](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/tcp_pcap.png)
+
+可以看到，通信的双方是：
+
+- 192.168.56.1:64505（测试工具，作为客户端）
+- 192.168.56.45:61000（框架，作为服务器端）
+
+第 43 组，测试工具向框架发送了 SYN = 1, seq = x = 0。
+
+第 46 组，框架向测试工具发送了 SYN = 1, ACK = 1, seq = y = 0, ack = x + 1 = 1。
+
+第 47 组，测试工具向框架发送了 ACK = 1, seq = x + 1 = 1, ack = y + 1 = 1。
+
+第 48 - 51 组，正常连接。
+
+第 56 组，由于我按下了"断开连接"，故测试工具向框架直接发送了 FIN = 1, ACK = 1, seq = 4, ack = 4。
+
+第 57 组，框架向测试工具发送了 FIN = 1, ACK = 1, seq = 1, ack = 5。
+
+第 58 组，测试工具向框架发送了 ACK = 1, seq = 5, ack = 5。
+
+## 4 实验中遇到的问题及解决方法
+
+在前面的 2.2 已经提到过了。
+
+## 5 意见和建议
+
+1. 纠正一个小 bug：TCP 头部的 `checksum16` 被拼写成了 `chunksum16`。
+2. `tcp_in` 的注释有一点小问题。不只是服务器端，也包括客户机端。不过本次实验中，客户端为 TCP 测试工具，而服务器端为本框架。故而下面代码中关于客户端的状态的部分可删可不删。
