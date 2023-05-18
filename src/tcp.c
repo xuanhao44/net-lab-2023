@@ -125,7 +125,7 @@ static uint16_t tcp_checksum(buf_t *buf, uint8_t *src_ip, uint8_t *dst_ip)
     memcpy(peso_hdr->src_ip, src_ip, NET_IP_LEN);
     memcpy(peso_hdr->dst_ip, dst_ip, NET_IP_LEN);
     peso_hdr->placeholder = 0;
-    peso_hdr->protocol = NET_PROTOCOL_UDP;
+    peso_hdr->protocol = NET_PROTOCOL_TCP;
     peso_hdr->total_len16 = swap16(buf->len); // 需要解释
 
     // S4 计算 TCP 校验和，并返回

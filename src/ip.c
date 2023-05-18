@@ -63,7 +63,7 @@ void ip_in(buf_t *buf, uint8_t *src_mac)
 
     // S5 调用 net_in() 函数向上层传递数据包
     // 调用 net_in() 函数向上层传递数据包。如果是不能识别的协议类型，即调用 icmp_unreachable() 返回 ICMP 协议不可达信息。
-    if ( // protocol == NET_PROTOCOL_TCP ||
+    if (protocol == NET_PROTOCOL_TCP ||
         protocol == NET_PROTOCOL_UDP ||
         protocol == NET_PROTOCOL_ICMP) // ICMP 使用 IP 数据包传输，某种程度上算是 IP 的上层协议了
     {
