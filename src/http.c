@@ -96,7 +96,6 @@ static void close_http(tcp_connect_t *tcp)
 static void send_file(tcp_connect_t *tcp, const char *url)
 {
     FILE *file;
-    uint32_t size;
     // const char* content_type = "text/html";
     char file_path[255];
     char tx_buffer[1024];
@@ -110,6 +109,47 @@ static void send_file(tcp_connect_t *tcp, const char *url)
     */
 
     // TODO
+    // 根据 url 获取指定的文件
+    // 查看 include/http.h: XHTTP_DOC_DIR : "../htmldocs"
+    memcpy(file_path, XHTTP_DOC_DIR, sizeof(XHTTP_DOC_DIR));
+    strcat(file_path, url);
+    if (strcmp(url, "/") == 0)
+    {
+        strcat(file_path, "index.html");
+    }
+    file = fopen(file_path, "rb");
+
+    //  若文件不存在，发送 HTTP ERROR 404
+    if (file == NULL)
+    {
+        memset(tx_buffer, 0, sizeof(tx_buffer));
+        strcpy(tx_buffer, "HTTP/1.0 404 NOT FOUND\r\n");
+        strcat(tx_buffer, "Sever: \r\n");
+        strcat(tx_buffer, "Content-Type: text/html\r\n");
+        strcat(tx_buffer, "\r\n");
+        http_send(tcp, tx_buffer, strlen(tx_buffer));
+        return;
+    }
+
+    // 如果是，则用 HTTP/1.0 协议发送
+    // 准备 HTTP 报头
+    memset(tx_buffer, 0, sizeof(tx_buffer));
+    strcpy(tx_buffer, "HTTP/1.0 200 OK\r\n");
+    strcat(tx_buffer, "Sever: \r\n");
+    strcat(tx_buffer, "Content-Type: \r\n");
+    strcat(tx_buffer, "\r\n");
+    http_send(tcp, tx_buffer, strlen(tx_buffer));
+
+    // 读取文件并发送
+    memset(tx_buffer, 0, sizeof(tx_buffer));
+    while (fread(tx_buffer, sizeof(char), sizeof(tx_buffer), file) > 0)
+    {
+        http_send(tcp, tx_buffer, sizeof(tx_buffer));
+        memset(tx_buffer, 0, sizeof(tx_buffer));
+    }
+
+    // 发送完毕后关闭文件
+    fclose(file);
 }
 
 static void http_handler(tcp_connect_t *tcp, connect_state_t state)
@@ -152,20 +192,40 @@ void http_server_run(void)
 
     while ((tcp = http_fifo_out(&http_fifo_v)) != NULL)
     {
-        int i;
         char *c = rx_buffer;
 
-        // 1 调用 get_line 从 rx_buffer 中获取一行数据，如果没有数据，则调用 close_http 关闭 tcp，并继续循环
+        // 1 调用 get_line 向 rx_buffer 中写入一行数据，
+        // 如果没有数据，则调用 close_http 关闭 tcp，并继续循环
         // TODO
+        if (get_line(tcp, c, sizeof(rx_buffer)) == 0)
+        {
+            close_http(tcp);
+            continue;
+        }
 
-        // 2 检查是否有 GET 请求，如果没有，则调用 close_http 关闭 tcp，并继续循环
+        // 2 检查是否有 GET 请求，如："GET / HTTP1.1"
+        // 如果没有，则调用 close_http 关闭 tcp，并继续循环
         // TODO
+        if (memcmp(rx_buffer, "GET", 3) != 0)
+        {
+            close_http(tcp);
+            continue;
+        }
 
         // 3 解析 GET 请求的路径，注意跳过空格，找到 GET 请求的文件，调用 send_file 发送文件
         // TODO
+        int i;
+        while (c[i + 4] != ' ')
+        {
+            url_path[i] = c[i + 4];
+            i++;
+        }
+        url_path[i] = '\0';
+        send_file(tcp, url_path);
 
         // 4 调用 close_http 关掉连接
         // TODO
+        close_http(tcp);
 
         printf("!! final close\n");
     }
