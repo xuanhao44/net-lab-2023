@@ -122,7 +122,7 @@ wireshark 捕获到的报文数据：（wireshark 的 [udp.pcap](../testing/data
 
 关于环境这一块，最开始我是使用的我自己电脑的 WSL 的 IP 来实验的，但是发现在这种情况下，测试工具发出的 UDP 包的 IP 的 checksum 都是 0。这意味着网络本身有问题——但是这个道理我在许久之后才想明白。
 
-![udp_problem_1](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/udp_problem_1.png)
+![udp_problem_1](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/udp_problem_1.png)
 
 当时我在看到 wireshark 里捕获的数据时还以为是我发出的 UDP 包的 checksum 有问题！真是可笑。这说明我一开始的时候**对实验测试的原理不清楚**，且 wireshark 的信息也没有认真的看。
 
