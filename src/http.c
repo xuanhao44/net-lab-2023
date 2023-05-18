@@ -102,7 +102,7 @@ static void send_file(tcp_connect_t *tcp, const char *url)
     char tx_buffer[1024];
 
     /*
-    解析 url 路径，查看是否是查看 XHTTP_DOC_DIR 目录下的文件
+    解析 url 路径，查看是否是 XHTTP_DOC_DIR 目录下的文件
     如果不是，则发送 404 NOT FOUND
     如果是，则用 HTTP/1.0 协议发送
 
