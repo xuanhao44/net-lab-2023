@@ -311,7 +311,10 @@ size_t tcp_connect_write(tcp_connect_t *connect, const uint8_t *data, size_t len
 }
 
 /**
- * @brief 服务器端 TCP 收包
+ * @brief 服务器端/客户机端 TCP 收包
+ *
+ * 本次实验中，客户端为 TCP 测试工具，而服务器端为本框架。
+ * 故而下面代码中关于客户端的状态的部分可删可不删。
  *
  * @param buf
  * @param src_ip
