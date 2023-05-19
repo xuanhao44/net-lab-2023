@@ -64,7 +64,6 @@ void arp_req(uint8_t *target_ip)
 
     // Step1
     // 调用 buf_init() 对 txbuf 进行初始化。
-    buf_t txbuf; // 拿一个数据包
     buf_init(&txbuf, sizeof(arp_pkt_t)); // 初始化为 arp 包长度
     arp_pkt_t *pkt = (arp_pkt_t *)txbuf.data;
 
@@ -95,7 +94,6 @@ void arp_resp(uint8_t *target_ip, uint8_t *target_mac)
 
     // Step1
     // 首先调用 buf_init() 来初始化 txbuf。
-    buf_t txbuf;                         // 拿一个数据包
     buf_init(&txbuf, sizeof(arp_pkt_t)); // 初始化为 arp 包长度
     arp_pkt_t *pkt = (arp_pkt_t *)txbuf.data;
 
@@ -125,7 +123,8 @@ void arp_in(buf_t *buf, uint8_t *src_mac)
 
     // Step1
     // 首先判断数据长度，如果数据长度小于 ARP 头部长度，则认为数据包不完整，丢弃不处理。
-    if (buf->len < sizeof(arp_pkt_t)) {
+    if (buf->len < sizeof(arp_pkt_t))
+    {
         return;
     }
 
@@ -134,23 +133,28 @@ void arp_in(buf_t *buf, uint8_t *src_mac)
     // ARP 报头的硬件类型、上层协议类型、MAC 硬件地址长度、IP 协议地址长度、操作类型，检测该报头是否符合协议规定。
     arp_pkt_t *pkt = (arp_pkt_t *)buf->data;
     // 硬件类型为以太网
-    if (swap16(pkt->hw_type16) != ARP_HW_ETHER) {
+    if (swap16(pkt->hw_type16) != ARP_HW_ETHER)
+    {
         return;
     }
     // （硬件地址要映射的协议地址类型）映射 IP 地址时的值为 0x0800
-    if (swap16(pkt->pro_type16) != NET_PROTOCOL_IP) {
+    if (swap16(pkt->pro_type16) != NET_PROTOCOL_IP)
+    {
         return;
     }
     // MAC 硬件地址长度为 6
-    if (pkt->hw_len != NET_MAC_LEN) {
+    if (pkt->hw_len != NET_MAC_LEN)
+    {
         return;
     }
     // IP 协议地址长度为 4
-    if (pkt->pro_len != NET_IP_LEN) {
+    if (pkt->pro_len != NET_IP_LEN)
+    {
         return;
     }
     // 检测该报头是否符合协议规定：ARP 请求和应答报文两种
-    if (swap16(pkt->opcode16) != ARP_REQUEST && swap16(pkt->opcode16) != ARP_REPLY) {
+    if (swap16(pkt->opcode16) != ARP_REQUEST && swap16(pkt->opcode16) != ARP_REPLY)
+    {
         return;
     }
 
@@ -197,7 +201,8 @@ void arp_out(buf_t *buf, uint8_t *ip)
 
     // Step2
     // 如果能找到该 IP 地址对应的 MAC 地址，则将数据包直接发送给以太网层，即调用 ethernet_out 函数直接发出去。
-    if (mac != NULL) {
+    if (mac != NULL)
+    {
         ethernet_out(buf, mac, NET_PROTOCOL_IP); // 是 IP 协议
         return;
     }
@@ -206,7 +211,8 @@ void arp_out(buf_t *buf, uint8_t *ip)
     // 如果没有找到对应的 MAC 地址，进一步判断 arp_buf 是否已经有包了：
     buf_t *arp_buf_i = (buf_t *)map_get(&arp_buf, ip);
     // 如果有，则说明正在等待该 ip 回应 ARP 请求，此时不能再发送 arp 请求；
-    if (arp_buf_i != NULL) {
+    if (arp_buf_i != NULL)
+    {
         return;
     }
     // 如果没有包，则调用 map_set() 函数将来自 IP 层的数据包缓存到 arp_buf，

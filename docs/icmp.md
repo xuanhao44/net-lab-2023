@@ -35,7 +35,7 @@
 static void icmp_resp(buf_t *req_buf, uint8_t *src_ip)
 {
     // S1 组装响应报文
-    buf_t txbuf;
+    buf_init(&txbuf, req_buf->len);
     buf_copy(&txbuf, req_buf, req_buf->len); // 直接拷贝！
     icmp_hdr_t *resp_hdr = (icmp_hdr_t *)txbuf.data;
     resp_hdr->type = ICMP_TYPE_ECHO_REPLY;

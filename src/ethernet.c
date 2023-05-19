@@ -14,7 +14,8 @@ void ethernet_in(buf_t *buf)
 
     // Step1
     // 判断数据长度，如果数据长度小于以太网头部长度，则认为数据包不完整，丢弃不处理
-    if (buf->len < sizeof(ether_hdr_t)) {
+    if (buf->len < sizeof(ether_hdr_t))
+    {
         return;
     }
 

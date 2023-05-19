@@ -13,7 +13,7 @@ static void icmp_resp(buf_t *req_buf, uint8_t *src_ip)
     // TO-DO
 
     // S1 组装响应报文
-    buf_t txbuf;
+    buf_init(&txbuf, req_buf->len);
     buf_copy(&txbuf, req_buf, req_buf->len); // 直接拷贝！
     icmp_hdr_t *resp_hdr = (icmp_hdr_t *)txbuf.data;
     resp_hdr->type = ICMP_TYPE_ECHO_REPLY;
@@ -65,7 +65,6 @@ void icmp_unreachable(buf_t *recv_buf, uint8_t *src_ip, icmp_code_t code)
     // TO-DO
 
     // S1 差错报文数据：使用收到的 IP 报头与其报文前 8 字节
-    buf_t txbuf;
     buf_init(&txbuf, sizeof(ip_hdr_t) + 8);
     memcpy(txbuf.data, recv_buf->data, sizeof(ip_hdr_t) + 8);
 
