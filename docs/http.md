@@ -8,16 +8,16 @@
 
 ## 2 结合实验框架的实现
 
-实现 http.c 文件中的 `send_file` 函数和 `http_server_run` 函数。框架给出的提示的部分足够完成实验。没有特别要提到的东西。
+实现 `send_file()` 函数和 `http_server_run()` 函数。框架给出的提示的部分足够完成实验。没有特别要提到的东西。
 
-### 2.1 http_server_run
+### 2.1 `http_server_run()`
 
 流程：
 
-1. 调用 `get_line` 向 `rx_buffer` 中写入一行数据，如果没有数据，则调用 `close_http` 关闭 tcp，并继续循环。
-2. 检查是否有 GET 请求。如果没有，则调用 `close_http` 关闭 tcp，并继续循环。
-3. 解析 GET 请求的路径，注意跳过空格，找到 GET 请求的文件，调用 send_file 发送文件。
-4. 调用 `close_http` 关掉连接。
+1. 调用 `get_line()` 向 `rx_buffer` 中写入一行数据，如果没有数据，则调用 `close_http()` 关闭 TCP，并继续循环。
+2. 检查是否有 GET 请求。如果没有，则调用 `close_http()` 关闭 TCP，并继续循环。
+3. 解析 GET 请求的路径，注意跳过空格，找到 GET 请求的文件，调用 `send_file()` 发送文件。
+4. 调用 `close_http()` 关掉连接。
 
 ---
 
@@ -34,14 +34,13 @@
 2. 如何拆分 `rx_buffer`。使用 `strtok()` 函数（来自 `string.h`）
 
 - 函数原型：`char *strtok(char s[], const char*delim);`
-- s[]是原字符串，delim 为分隔符。
+- `s[]` 是原字符串，`delim` 为分隔符。
 - 返回：字符串拆分后的首地址。
 - “拆分”：将分割字符用 '\0’替换
 - 特性：
-  - strtok 拆分字符串是直接在 **原串** 上操作，所以要求参 1 必须，可读可写（char *str = “www.baidu.com”不行！！！）
+  - `strtok()` 拆分字符串是直接在 **原串** 上操作，所以要求参 1 必须，可读可写（`char *str = “www.baidu.com”` 不行！！！）
   - 第一次拆分，参 1 传待拆分的原串。第 2 次及以后拆分时，参 1 传 NULL.
-
-例程：
+- 例程：
 
 ```c
 void test01()
@@ -58,7 +57,7 @@ void test01()
 }
 ```
 
-### 2.2 send_file
+### 2.2 `send_file()`
 
 流程：解析 url 路径，查看是否是 `XHTTP_DOC_DIR` 目录下的文件。如果不是，则发送 404 NOT FOUND；如果是，则用 HTTP/1.0 协议发送。
 
@@ -90,7 +89,7 @@ void test01()
 
 ![http_test_3](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/http_test_3.jpg)
 
-wireshark 捕获到的报文数据：（wireshark 的 [http.pcap](../testing/data/http.pcap)）
+Wireshark 捕获到的报文数据：（Wireshark 的 [http.pcap](../testing/data/http.pcap)）
 
 ![net_lab_http_pcap](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_http_pcap.png)
 
@@ -102,5 +101,5 @@ wireshark 捕获到的报文数据：（wireshark 的 [http.pcap](../testing/dat
 ## 5 意见和建议
 
 1. http.h 中的 XHTTP_DOC_DIR 居然给的是错的...大离谱。
-2. `http_server_run` 函数的注释 1 是有点错误，应该是“调用 `get_line` 向 `rx_buffer` 中写入一行数据”。
+2. `http_server_run()` 函数的注释 1 是有点错误，应该是“调用 `get_line()` 向 `rx_buffer` 中写入一行数据”。
 3. 感觉这个 HTTP 服务器还是太简陋了。
