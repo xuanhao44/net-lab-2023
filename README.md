@@ -13,3 +13,10 @@
 5. [UDP 协议](docs/udp.md)
 6. [TCP 协议](docs/tcp.md)
 7. [HTTP 协议](docs/http.md)
+
+Debug 分支：时间线为“写 IP/ICMP/UDP 实验”。当时正遇上几个不容易发现的 bug。利用了 main 的调试解决。
+
+调试视频地址：
+
+1. 学习 Debug：<https://www.bilibili.com/video/BV1824y1T7ja/>
+2. Debug 大小端：<https://www.bilibili.com/video/BV1pX4y127dE/>
