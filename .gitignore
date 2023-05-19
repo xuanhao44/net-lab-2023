@@ -1,2 +1,5 @@
 # dir 不需要的目录
 /build
+# testing 下的新生成的 log 和 pcap 文件
+log
+*.pcap
