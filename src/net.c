@@ -8,32 +8,32 @@
 #include "tcp.h"
 
 /**
- * @brief 协议表 <协议号,处理程序>的容器
- * 
+ * @brief 协议表 <协议号，处理程序>的容器
+ *
  */
 map_t net_table;
 
 /**
- * @brief 网卡MAC地址
- * 
+ * @brief 网卡 MAC 地址
+ *
  */
 uint8_t net_if_mac[NET_MAC_LEN] = NET_IF_MAC;
 
 /**
- * @brief 网卡IP地址
- * 
+ * @brief 网卡 IP 地址
+ *
  */
 uint8_t net_if_ip[NET_IP_LEN] = NET_IF_IP;
 
 /**
  * @brief 网卡接收和发送缓冲区
- * 
+ *
  */
-buf_t rxbuf, txbuf; //一个buf足够单线程使用
+buf_t rxbuf, txbuf; // 一个 buf 足够单线程使用
 
 /**
  * @brief 初始化协议栈
- * 
+ *
  */
 int net_init()
 {
@@ -63,9 +63,9 @@ int net_init()
 
 /**
  * @brief 向协议栈注册一个协议
- * 
- * @param protocol 协议号 
- * @param handler 该协议的in处理程序
+ *
+ * @param protocol 协议号
+ * @param handler 该协议的 in 处理程序
  */
 void net_add_protocol(uint16_t protocol, net_handler_t handler)
 {
@@ -74,11 +74,11 @@ void net_add_protocol(uint16_t protocol, net_handler_t handler)
 
 /**
  * @brief 向协议栈的上层协议传递数据包
- * 
+ *
  * @param buf 要传递的数据包
  * @param protocol 上层协议号
- * @param src 源的本层协议地址，如mac或ip地址
- * @return int 成功为0，失败为-1
+ * @param src 源的本层协议地址，如 mac 或 ip 地址
+ * @return int 成功为 0，失败为 -1
  */
 int net_in(buf_t *buf, uint16_t protocol, uint8_t *src)
 {
@@ -93,7 +93,7 @@ int net_in(buf_t *buf, uint16_t protocol, uint8_t *src)
 
 /**
  * @brief 一次协议栈轮询
- * 
+ *
  */
 void net_poll()
 {

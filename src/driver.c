@@ -4,8 +4,8 @@
 #ifdef _WIN32
 #include <tchar.h>
 /**
- * @brief npcp官方提供的加载npcap的dll库函数
- * 
+ * @brief npcp 官方提供的加载 npcap 的 dll 库函数
+ *
  * @return BOOL 是否成功
  */
 BOOL LoadNpcapDlls()
@@ -32,12 +32,12 @@ pcap_t *pcap;
 char pcap_errbuf[PCAP_ERRBUF_SIZE];
 
 /**
- * @brief 根据ip进行前缀匹配，选取最长前缀匹配的网卡
- * 
- * @param ip ip地址
+ * @brief 根据 ip 进行前缀匹配，选取最长前缀匹配的网卡
+ *
+ * @param ip ip 地址
  * @param if_name 出口参数，选取的网卡名
  * @param mask 出口参数，该网卡的掩码
- * @return int 成功为0，失败为-1
+ * @return int 成功为 0，失败为 -1
  */
 int driver_find(uint8_t *ip, char *if_name, uint8_t *mask)
 {
@@ -95,8 +95,8 @@ int driver_find(uint8_t *ip, char *if_name, uint8_t *mask)
 
 /**
  * @brief 打开网卡
- * 
- * @return int 成功为0，失败为-1
+ *
+ * @return int 成功为 0，失败为 -1
  */
 int driver_open()
 {
@@ -118,12 +118,12 @@ int driver_open()
     }
     printf("Using interface %s, my ip is %s.\n", if_name, iptos(net_if_ip));
 
-    if ((pcap = pcap_open_live(if_name, 65536, 1, 10, pcap_errbuf)) == NULL) //混杂模式打开网卡
+    if ((pcap = pcap_open_live(if_name, 65536, 1, 10, pcap_errbuf)) == NULL) // 混杂模式打开网卡
     {
         fprintf(stderr, "Error in pcap_open_live.\n%s.\n", pcap_errbuf);
         return -1;
     }
-    if (pcap_setnonblock(pcap, 1, pcap_errbuf) < 0) //设置非阻塞模式
+    if (pcap_setnonblock(pcap, 1, pcap_errbuf) < 0) // 设置非阻塞模式
     {
         fprintf(stderr, "Error in pcap_setnonblock. %s.\n", pcap_errbuf);
         return -1;
@@ -131,7 +131,7 @@ int driver_open()
     char filter_exp[PCAP_BUF_SIZE];
     struct bpf_program fp;
     uint8_t mac_addr[6] = NET_IF_MAC;
-    sprintf(filter_exp, //过滤数据包
+    sprintf(filter_exp, // 过滤数据包
             "(ether dst %02x:%02x:%02x:%02x:%02x:%02x or ether broadcast) and (not ether src %02x:%02x:%02x:%02x:%02x:%02x)",
             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5],
             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
@@ -149,9 +149,9 @@ int driver_open()
 }
 /**
  * @brief 试图从网卡接收数据包
- * 
+ *
  * @param buf 收到的数据包
- * @return int 数据包的长度，未收到为0，错误为-1
+ * @return int 数据包的长度，未收到为 0，错误为 -1
  */
 int driver_recv(buf_t *buf)
 {
@@ -171,9 +171,9 @@ int driver_recv(buf_t *buf)
 }
 /**
  * @brief 使用网卡发送一个数据包
- * 
+ *
  * @param buf 要发送的数据包
- * @return int 成功为0，失败为-1
+ * @return int 成功为 0，失败为 -1
  */
 int driver_send(buf_t *buf)
 {
@@ -187,7 +187,7 @@ int driver_send(buf_t *buf)
 }
 /**
  * @brief 关闭网卡
- * 
+ *
  */
 void driver_close()
 {

@@ -2,14 +2,14 @@
 #include "map.h"
 
 /**
- * @brief 初始化map
- * 
- * @param map 要初始化的map
+ * @brief 初始化 map
+ *
+ * @param map 要初始化的 map
  * @param key_len 键的长度
  * @param value_len 值的长度
- * @param max_size 最大容量，为0则根据MAP_MAX_LEN自动设置
- * @param timeout 超时秒数，为0则永不超时
- * @param value_constuctor 形如memcpy的构造函数，用于拷贝值到容器中，为NULL则使用memcpy
+ * @param max_size 最大容量，为 0 则根据 MAP_MAX_LEN 自动设置
+ * @param timeout 超时秒数，为 0 则永不超时
+ * @param value_constuctor 形如 memcpy 的构造函数，用于拷贝值到容器中，为 NULL 则使用 memcpy
  */
 void map_init(map_t *map, size_t key_len, size_t value_len, size_t max_size, time_t timeout, map_constuctor_t value_constuctor)
 {
@@ -27,10 +27,10 @@ void map_init(map_t *map, size_t key_len, size_t value_len, size_t max_size, tim
 }
 
 /**
- * @brief 获取map当前大小
- * 
- * @param map 要获取的map
- * @return size_t map大小
+ * @brief 获取 map 当前大小
+ *
+ * @param map 要获取的 map
+ * @return size_t map 大小
  */
 size_t map_size(map_t *map)
 {
@@ -38,9 +38,9 @@ size_t map_size(map_t *map)
 }
 
 /**
- * @brief 内部函数，获取第n个物理位置的键值对
- * 
- * @param map 要获取的map
+ * @brief 内部函数，获取第 n 个物理位置的键值对
+ *
+ * @param map 要获取的 map
  * @param pos 位置
  * @return void* 键值对指针
  */
@@ -53,10 +53,10 @@ void *map_entry_get(map_t *map, size_t pos)
 
 /**
  * @brief 内部函数，判断键值对是否有效
- * 
- * @param map 要判断的map
+ *
+ * @param map 要判断的 map
  * @param entry 键值对指针
- * @return int 1为合法，0为不合法
+ * @return int 1 为合法，0 为不合法
  */
 int map_entry_valid(map_t *map, const void *entry)
 {
@@ -65,11 +65,11 @@ int map_entry_valid(map_t *map, const void *entry)
 }
 
 /**
- * @brief 获取map中指定键的值
- * 
- * @param map 要获取的map
+ * @brief 获取 map 中指定键的值
+ *
+ * @param map 要获取的 map
  * @param key 键指针
- * @return void* 值指针，找不到为NULL 
+ * @return void* 值指针，找不到为 NULL
  */
 void *map_get(map_t *map, const void *key)
 {
@@ -85,13 +85,13 @@ void *map_get(map_t *map, const void *key)
 }
 
 /**
- * @brief 插入或更新map中指定键的值
- * 
- * @param map 要操作的map
+ * @brief 插入或更新 map 中指定键的值
+ *
+ * @param map 要操作的 map
  * @param key 键指针
  * @param value 值指针
- * @return int 成功为0，失败为-1
-*/
+ * @return int 成功为 0，失败为 -1
+ */
 int map_set(map_t *map, const void *key, const void *value)
 {
     uint8_t *old_value = map_get(map, key);
@@ -120,9 +120,9 @@ int map_set(map_t *map, const void *key, const void *value)
 }
 
 /**
- * @brief 删除map中指定的键
- * 
- * @param map 要操作的map
+ * @brief 删除 map 中指定的键
+ *
+ * @param map 要操作的 map
  * @param key 键指针
  */
 void map_delete(map_t *map, const void *key)
@@ -136,9 +136,9 @@ void map_delete(map_t *map, const void *key)
 }
 
 /**
- * @brief 遍历map
- * 
- * @param map 要遍历的map
+ * @brief 遍历 map
+ *
+ * @param map 要遍历的 map
  * @param handler 对每个键值对应用的回调函数，参数为（键指针，值指针，更新时间指针）
  */
 void map_foreach(map_t *map, map_entry_handler_t handler)
