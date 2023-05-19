@@ -70,7 +70,6 @@ void test01()
 需要注意的点：
 
 1. url 为 "/" 时候默认访问 "/index.html"。
-
 2. HTTP/1.0 报文的头部我应该是没有填写完全的，不过也能跑。但是 header 之后必须要有一个“空行”。
 
    <img src="https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/http_response.png" alt="http_response" style="zoom:50%;" />

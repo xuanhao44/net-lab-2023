@@ -85,13 +85,9 @@ icmp_test：![net_lab_icmp_result](https://typora-1304621073.cos.ap-guangzhou.my
 ![net_lab_icmp_in_out_pcap](https://typora-1304621073.cos.ap-guangzhou.myqcloud.com/typora/net_lab/net_lab_icmp_in_out_pcap.png)
 
 1. in 的第 8 组，收到了一个 ICMP ping request。
-
    out 的第 7 组，发送了一个 ICMP ping reply。
-
    in 的第 11 组，收到了一个 ICMP ping reply。
-
 2. out 的第 9 组，发送了一个 ICMP ping reply。
-
 3. out 的第 10 和 13 组，各发送了一个 ICMP unreachable，查看得知是因为使用了 TCP 协议，这是 IP 实验中就设置好的，很正常。
 
 ---
