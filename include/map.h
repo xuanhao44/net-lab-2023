@@ -9,15 +9,15 @@
 typedef void (*map_constuctor_t)(void *dst, const void *src, size_t len);
 typedef void (*map_entry_handler_t)(void *key, void *value, time_t *timestamp);
 
-typedef struct map //协议栈的通用泛型map，即键值对的容器，支持超时时间与非平凡值类型
+typedef struct map // 协议栈的通用泛型 map，即键值对的容器，支持超时时间与非平凡值类型
 {
-    size_t key_len;                    //键的长度
-    size_t value_len;                  //值的长度
-    size_t size;                       //当前大小
-    size_t max_size;                   //最大容量
-    time_t timeout;                    //超时时间，0为永不超时
-    map_constuctor_t value_constuctor; //形如memcpy的值构造函数，用于拷贝非平凡数据结构到容器中，如buf_copy
-    uint8_t data[MAP_MAX_LEN];         //数据
+    size_t key_len;                    // 键的长度
+    size_t value_len;                  // 值的长度
+    size_t size;                       // 当前大小
+    size_t max_size;                   // 最大容量
+    time_t timeout;                    // 超时时间，0 为永不超时
+    map_constuctor_t value_constuctor; // 形如 memcpy 的值构造函数，用于拷贝非平凡数据结构到容器中，如 buf_copy
+    uint8_t data[MAP_MAX_LEN];         // 数据
 } map_t;
 
 void map_init(map_t *map, size_t key_len, size_t value_len, size_t max_len, time_t timeout, map_constuctor_t value_constuctor);

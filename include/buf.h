@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "config.h"
 
-typedef struct buf //协议栈的通用数据包buffer, 可以在头部装卸数据，以供协议头的添加和去除
+typedef struct buf // 协议栈的通用数据包 buffer, 可以在头部装卸数据，以供协议头的添加和去除
 {
     size_t len;                   // 包中有效数据大小
     uint8_t *data;                // 包的数据起始地址

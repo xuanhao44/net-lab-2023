@@ -14,9 +14,9 @@ typedef struct udp_hdr
 
 typedef struct udp_peso_hdr
 {
-    uint8_t src_ip[4];    // 源IP地址
-    uint8_t dst_ip[4];    // 目的IP地址
-    uint8_t placeholder;  // 必须置0,用于填充对齐
+    uint8_t src_ip[4];    // 源 IP 地址
+    uint8_t dst_ip[4];    // 目的 IP 地址
+    uint8_t placeholder;  // 必须置 0，用于填充对齐
     uint8_t protocol;     // 协议号
     uint16_t total_len16; // 整个数据包的长度
 } udp_peso_hdr_t;

@@ -8,7 +8,7 @@ typedef struct icmp_hdr
 {
     uint8_t type;        // 类型
     uint8_t code;        // 代码
-    uint16_t checksum16; // ICMP报文的校验和
+    uint16_t checksum16; // ICMP 报文的校验和
     uint16_t id16;       // 标识符
     uint16_t seq16;      // 序号
 } icmp_hdr_t;

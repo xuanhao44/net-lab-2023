@@ -18,12 +18,12 @@ typedef enum net_protocol
 
 typedef void (*net_handler_t)(buf_t *buf, uint8_t *src);
 
-#define NET_MAC_LEN 6 //mac地址长度
-#define NET_IP_LEN 4  //ip地址长度
+#define NET_MAC_LEN 6 // mac 地址长度
+#define NET_IP_LEN 4  // ip 地址长度
 
 extern uint8_t net_if_mac[NET_MAC_LEN];
 extern uint8_t net_if_ip[NET_IP_LEN];
-extern buf_t rxbuf, txbuf; //一个buf足够单线程使用
+extern buf_t rxbuf, txbuf; // 一个 buf 足够单线程使用
 
 int net_init();
 void net_poll();
